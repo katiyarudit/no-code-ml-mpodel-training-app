@@ -4,3 +4,4 @@ openpyxl==3.1.2
 scikit-learn==1.4.1.post1
 xgboost==2.0.3
 matplotlib
+plotly
