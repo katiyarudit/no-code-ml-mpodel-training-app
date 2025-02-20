@@ -1,17 +1,23 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 import pandas as pd
-import matplotlib.pyplot as plt
 import plotly.express as px
-import time
+import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="ML Model Training App", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
-
-# Light/Dark Mode
-mode = st.sidebar.radio("Choose Mode:", ["Light", "Dark"])
-if mode == "Dark":
-    st.markdown("""<style>body {background-color: #1E1E1E; color: white;}</style>""", unsafe_allow_html=True)
+# Custom CSS for dark mode and hover effects
+css = """
+<style>
+    body { background-color: #0d1117; color: white; }
+    .stSidebar { background-color: #161b22; }
+    .stButton > button { background-color: #1f6feb; color: white; border-radius: 8px; }
+    .stButton > button:hover { background-color: #3a9dfb; }
+    .stSelectbox > div:hover { background-color: #21262d; }
+    .stFileUploader > div:hover { background-color: #21262d; }
+</style>
+"""
+st.markdown(css, unsafe_allow_html=True)
 
 # Sidebar Navigation
 with st.sidebar:
@@ -23,24 +29,24 @@ with st.sidebar:
         default_index=0,
     )
 
+# Session state for file persistence
+if "uploaded_data" not in st.session_state:
+    st.session_state.uploaded_data = None
+
 # Home Page
 if selected == "Home":
     st.title("Welcome to ML Model Training App 🤖")
-    st.write("Upload datasets, train ML models, and visualize results.")
+    st.write("This app allows you to upload datasets, train machine learning models, and visualize results.")
     st.image("https://source.unsplash.com/800x400/?technology,machinelearning", use_column_width=True)
-    with st.spinner("Loading animations..."):
-        time.sleep(1)
-    st.success("Ready to explore the app!")
 
 # Upload Data Page
 elif selected == "Upload Data":
     st.title("Upload Your Dataset")
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
     if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
+        st.session_state.uploaded_data = pd.read_csv(uploaded_file)
         st.write("### Data Preview:")
-        st.dataframe(df.head())
-        st.success("Data successfully uploaded!")
+        st.dataframe(st.session_state.uploaded_data.head())
 
 # Train Model Page
 elif selected == "Train Model":
@@ -51,18 +57,16 @@ elif selected == "Train Model":
     train_button = st.button("Train Model")
     
     if train_button:
-        with st.spinner(f"Training {model_choice} model..."):
-            time.sleep(2)
-        st.success(f"{model_choice} model trained successfully!")
+        st.success(f"{model_choice} model is being trained...")
+        st.progress(100)
         st.balloons()
 
 # Results Page
-if selected == "Results":
+elif selected == "Results":
     st.title("Model Training Results")
-
-    uploaded_file = st.file_uploader("Upload a CSV file to visualize results", type="csv")
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
+    
+    if st.session_state.uploaded_data is not None:
+        df = st.session_state.uploaded_data
         st.write("### Data Preview:")
         st.dataframe(df.head())
 
@@ -79,20 +83,3 @@ if selected == "Results":
         st.plotly_chart(fig3)
     else:
         st.warning("Upload a dataset to visualize graphs.")
-#additional css for dark and light  mode
-dark_mode = st.toggle("🌙 Dark Mode")
-if dark_mode:
-    css = """
-    <style>
-    body { background-color: #121212; color: white; }
-    .stSidebar { background-color: #1E1E1E; }
-    </style>
-    """
-else:
-    css = """
-    <style>
-    body { background-color: white; color: black; }
-    </style>
-    """
-st.markdown(css, unsafe_allow_html=True)
-
