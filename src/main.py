@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import time
 
-st.set_page_config(page_title="ML Model Training App", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="ML Model Training App", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
+
 
 # Light/Dark Mode
 mode = st.sidebar.radio("Choose Mode:", ["Light", "Dark"])
@@ -56,25 +57,42 @@ elif selected == "Train Model":
         st.balloons()
 
 # Results Page
-elif selected == "Results":
+if selected == "Results":
     st.title("Model Training Results")
-    st.write("Visualizing model performance.")
-    
-    accuracy = {"Logistic Regression": 85, "Random Forest": 90, "SVM": 88}
-    model_selected = st.selectbox("Select Trained Model", list(accuracy.keys()))
-    st.metric(label="Model Accuracy", value=f"{accuracy[model_selected]}%")
-    
-    # Multiple Data Visualizations
-    fig1 = px.bar(x=list(accuracy.keys()), y=list(accuracy.values()), labels={'x': "Model", 'y': "Accuracy (%)"}, title="Model Accuracy Comparison")
-    fig2 = px.line(x=["Epoch 1", "Epoch 2", "Epoch 3", "Epoch 4"], y=[75, 80, 85, accuracy[model_selected]], title="Training Accuracy Over Time")
-    fig3 = px.scatter(x=df.index, y=df.iloc[:, 0], title="Feature Distribution")
-    fig4 = px.histogram(df, x=df.columns[1], title="Feature Histogram")
-    fig5 = px.box(df, y=df.columns[2], title="Box Plot of a Feature")
-    
-    st.plotly_chart(fig1)
-    st.plotly_chart(fig2)
-    st.plotly_chart(fig3)
-    st.plotly_chart(fig4)
-    st.plotly_chart(fig5)
-    
-    st.success("Real-time graphs updated!")
+
+    uploaded_file = st.file_uploader("Upload a CSV file to visualize results", type="csv")
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+        st.write("### Data Preview:")
+        st.dataframe(df.head())
+
+        # Scatter Plot
+        fig1 = px.scatter(df, x=df.index, y=df.columns[0], title="Feature Distribution")
+        st.plotly_chart(fig1)
+
+        # Line Chart
+        fig2 = px.line(df, x=df.index, y=df.columns[1], title="Feature Trend")
+        st.plotly_chart(fig2)
+
+        # Histogram
+        fig3 = px.histogram(df, x=df.columns[0], title="Feature Frequency")
+        st.plotly_chart(fig3)
+    else:
+        st.warning("Upload a dataset to visualize graphs.")
+#additional css for dark and light  mode
+dark_mode = st.toggle("🌙 Dark Mode")
+if dark_mode:
+    css = """
+    <style>
+    body { background-color: #121212; color: white; }
+    .stSidebar { background-color: #1E1E1E; }
+    </style>
+    """
+else:
+    css = """
+    <style>
+    body { background-color: white; color: black; }
+    </style>
+    """
+st.markdown(css, unsafe_allow_html=True)
+
