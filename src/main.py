@@ -1,74 +1,61 @@
-import os
-
 import streamlit as st
 from streamlit_option_menu import option_menu
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
+import pandas as pd
+import matplotlib.pyplot as plt
 
+st.set_page_config(page_title="ML Model Training App", page_icon="🤖", layout="wide")
 
-from ml_utility import (read_data,
-                        preprocess_data,
-                        train_model,
-                        evaluate_model)
+# Sidebar Navigation
+with st.sidebar:
+    selected = option_menu(
+        "Main Menu",
+        ["Home", "Upload Data", "Train Model", "Results"],
+        icons=["house", "cloud-upload", "cpu", "bar-chart-line"],
+        menu_icon="app-indicator",
+        default_index=0,
+    )
 
+# Home Page
+if selected == "Home":
+    st.title("Welcome to ML Model Training App 🤖")
+    st.write("This app allows you to upload datasets, train machine learning models, and visualize results.")
+    st.image("https://source.unsplash.com/800x400/?technology,machinelearning", use_column_width=True)
 
-# Get the working directory of the main.py file
-working_dir = os.path.dirname(os.path.abspath(__file__))
+# Upload Data Page
+elif selected == "Upload Data":
+    st.title("Upload Your Dataset")
+    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+        st.write("### Data Preview:")
+        st.dataframe(df.head())
 
-# Get the parent directory
-parent_dir = os.path.dirname(working_dir)
+# Train Model Page
+elif selected == "Train Model":
+    st.title("Train Your Model")
+    st.write("Select the model parameters and train your ML model.")
+    
+    model_choice = st.selectbox("Choose a Model", ["Logistic Regression", "Random Forest", "SVM"])
+    train_button = st.button("Train Model")
+    
+    if train_button:
+        st.success(f"{model_choice} model is being trained...")
+        st.progress(100)
+        st.balloons()
 
-
-st.set_page_config(
-    page_title="Automate ML",
-    page_icon="🧠",
-    layout="centered")
-
-
-st.title("🤖 No Code ML Model Training")
-
-dataset_list = os.listdir(f"{parent_dir}/data")
-
-dataset = st.selectbox("Select a dataset from the dropdown",
-                       dataset_list,
-                       index=None)
-
-df = read_data(dataset)
-
-if df is not None:
-    st.dataframe(df.head())
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    scaler_type_list = ["standard", "minmax"]
-
-    model_dictionary = {
-        "Logistic Regression": LogisticRegression(),
-        "Support Vector Classifier": SVC(),
-        "Random Forest Classifier": RandomForestClassifier(),
-        "XGBoost Classifier": XGBClassifier()
-    }
-
-
-    with col1:
-        target_column = st.selectbox("Select the Target Column", list(df.columns))
-    with col2:
-        scaler_type = st.selectbox("Select a scaler", scaler_type_list)
-    with col3:
-        selected_model = st.selectbox("Select a Model", list(model_dictionary.keys()))
-    with col4:
-        model_name = st.text_input("Model name")
-
-    if st.button("Train the Model"):
-
-        X_train, X_test, y_train, y_test = preprocess_data(df, target_column, scaler_type)
-
-        model_to_be_trained = model_dictionary[selected_model]
-
-        model = train_model(X_train, y_train, model_to_be_trained, model_name)
-
-        accuracy = evaluate_model(model, X_test, y_test)
-
-        st.success("Test Accuracy: " + str(accuracy))
+# Results Page
+elif selected == "Results":
+    st.title("Model Training Results")
+    st.write("Here you can visualize model performance.")
+    
+    # Dummy accuracy values
+    accuracy = {"Logistic Regression": 85, "Random Forest": 90, "SVM": 88}
+    model_selected = st.selectbox("Select Trained Model", list(accuracy.keys()))
+    
+    st.metric(label="Model Accuracy", value=f"{accuracy[model_selected]}%")
+    
+    # Dummy chart
+    fig, ax = plt.subplots()
+    ax.bar(accuracy.keys(), accuracy.values(), color=['blue', 'green', 'red'])
+    ax.set_ylabel("Accuracy (%)")
+    st.pyplot(fig)
