@@ -25,10 +25,20 @@ if selected == "Home":
 elif selected == "Upload Data":
     st.title("Upload Your Dataset")
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+
     if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-        st.write("### Data Preview:")
-        st.dataframe(df.head())
+        try:
+            df = pd.read_csv(uploaded_file)  # Try reading normally
+        except:
+            uploaded_file.seek(0)  # Reset pointer
+            df = pd.read_csv(uploaded_file, encoding="ISO-8859-1")  # Try different encoding
+        
+        if df.empty:
+            st.warning("⚠️ The uploaded CSV file is empty or not read correctly.")
+        else:
+            st.write("### Data Preview:")
+            st.dataframe(df.head())
+
 
 # Train Model Page
 elif selected == "Train Model":
